@@ -17,7 +17,7 @@ public class Player {
 
     public int xCoord;
     public int yCoord;
-
+    int speed;              //speed variable
     public int moveCounter;
 
     public String direction;//is your first name one?
@@ -30,12 +30,12 @@ public class Player {
         direction= "Right";
         justAte = false;
         lenght= 1;
-
+        speed=5;          //basic speed
     }
 
     public void tick(){
         moveCounter++;
-        if(moveCounter>=5) {
+        if(moveCounter>=speed) {
             checkCollisionAndMove();
             moveCounter=0;
         }
@@ -47,6 +47,12 @@ public class Player {
             direction="Left";
         }if(handler.getKeyManager().keyJustPressed(KeyEvent.VK_RIGHT)){
             direction="Right";
+        } if (handler.getKeyManager().keyJustPressed(KeyEvent.VK_MINUS)) {
+        	speed++;
+        } if (handler.getKeyManager().keyJustPressed(KeyEvent.VK_EQUALS)) {
+        	speed--;
+        } if (handler.getKeyManager().keyJustPressed(KeyEvent.VK_N)) {
+        	 handler.getWorld().body.add(new Tail(xCoord, yCoord,handler));
         }
 
     }
