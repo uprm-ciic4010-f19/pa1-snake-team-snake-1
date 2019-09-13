@@ -1,6 +1,9 @@
 package Game.Entities.Dynamic;
 
+
 import Main.Handler;
+import Game.GameStates.scoreState;
+import Game.GameStates.State;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -14,12 +17,14 @@ public class Player {
     public int lenght;
     public boolean justAte;
     private Handler handler;
+    private scoreState score;
+    private boolean pause; 
+    public boolean isalive;
 
     public int xCoord;
     public int yCoord;
-    int speed;              //speed variable
+    int speed;              //speed variable//
     public int moveCounter;
-
     public String direction;//is your first name one?
 
     public Player(Handler handler){
@@ -30,9 +35,15 @@ public class Player {
         direction= "Right";
         justAte = false;
         lenght= 1;
-        speed=5;          //basic speed
-    }
 
+        speed=4;          //basic speed
+        score = new scoreState();
+        isalive = true;
+        pause = false;
+
+        speed=5;          //basic speed
+
+    }
     public void tick(){
         moveCounter++;
         if(moveCounter>=speed) {
@@ -40,12 +51,43 @@ public class Player {
             moveCounter=0;
         }
         if(handler.getKeyManager().keyJustPressed(KeyEvent.VK_UP)){
+        	if(direction.equals("Down")) {
+        		;
+        	}
+        	else {
             direction="Up";
+        	}
         }if(handler.getKeyManager().keyJustPressed(KeyEvent.VK_DOWN)){
-            direction="Down";
+        	if(direction.equals("Up")) {
+        		;
+        	}
+        	else {
+        		direction="Down";
+        	}
         }if(handler.getKeyManager().keyJustPressed(KeyEvent.VK_LEFT)){
-            direction="Left";
+        	if(direction.equals("Right")) {
+        		;
+        	}
+        	else {
+        		direction="Left";
+        	}
         }if(handler.getKeyManager().keyJustPressed(KeyEvent.VK_RIGHT)){
+
+        	if(direction.equals("Left")) {
+        		;
+        	}
+        	else {
+        		direction="Right";
+        	}
+        } if (handler.getKeyManager().keyJustPressed(KeyEvent.VK_MINUS)) {
+        	speed++;
+        } if (handler.getKeyManager().keyJustPressed(KeyEvent.VK_EQUALS)) {
+        	speed--;
+        } if (handler.getKeyManager().keyJustPressed(KeyEvent.VK_N)) {
+        	 handler.getWorld().body.add(new Tail(xCoord, yCoord,handler));
+        } if (handler.getKeyManager().keyJustPressed(KeyEvent.VK_ESCAPE)) {
+    		State.setState(handler.getGame().pauseState);
+
             direction="Right";
         } if (handler.getKeyManager().keyJustPressed(KeyEvent.VK_MINUS)) {
         	speed++;
@@ -53,6 +95,7 @@ public class Player {
         	speed--;
         } if (handler.getKeyManager().keyJustPressed(KeyEvent.VK_N)) {
         	 handler.getWorld().body.add(new Tail(xCoord, yCoord,handler));
+
         }
 
     }
@@ -64,28 +107,30 @@ public class Player {
         switch (direction){
             case "Left":
                 if(xCoord==0){
-                    kill();
-                }else{
+                    xCoord = handler.getWorld().GridWidthHeightPixelCount-1;
+                }
+                else{
                     xCoord--;
                 }
                 break;
             case "Right":
                 if(xCoord==handler.getWorld().GridWidthHeightPixelCount-1){
-                    kill();
-                }else{
+                    xCoord = 0;
+                }
+                else{
                     xCoord++;
                 }
                 break;
             case "Up":
                 if(yCoord==0){
-                    kill();
+                    yCoord = handler.getWorld().GridWidthHeightPixelCount-1;
                 }else{
                     yCoord--;
                 }
                 break;
             case "Down":
                 if(yCoord==handler.getWorld().GridWidthHeightPixelCount-1){
-                    kill();
+                    yCoord = 0;
                 }else{
                     yCoord++;
                 }
@@ -96,6 +141,12 @@ public class Player {
 
         if(handler.getWorld().appleLocation[xCoord][yCoord]){
             Eat();
+        }
+        
+        for (int i = 0; i< handler.getWorld().body.size(); i++) {
+        	if(xCoord == handler.getWorld().body.get(i).x && yCoord == handler.getWorld().body.get(i).y) {
+        		isalive = false;
+        	}
         }
 
         if(!handler.getWorld().body.isEmpty()) {
@@ -109,6 +160,13 @@ public class Player {
     public void render(Graphics g,Boolean[][] playeLocation){
         Random r = new Random();
         for (int i = 0; i < handler.getWorld().GridWidthHeightPixelCount; i++) {
+        	if (this.isalive == false) {
+        		g.clearRect(0, 0, 800, 800);
+        		g.setColor(Color.red);
+                g.setFont(new Font("ComicSans", Font.PLAIN, 64));
+                g.drawString("Game Over", 225, 400);
+                break;
+        	}
             for (int j = 0; j < handler.getWorld().GridWidthHeightPixelCount; j++) {
                 g.setColor(Color.green);
 
@@ -125,6 +183,10 @@ public class Player {
                             (j*handler.getWorld().GridPixelsize),
                             handler.getWorld().GridPixelsize,
                             handler.getWorld().GridPixelsize);
+                String score_str = Double.toString(Game.GameStates.scoreState.currscore);
+                g.setFont(new Font("ComicSans", Font.PLAIN, 32));
+                g.drawString(score_str, 155, 40);
+                g.drawString("Score:", 40, 40);
                }
                     
             }
@@ -135,6 +197,8 @@ public class Player {
     
     public void Eat(){
         lenght++;
+        speed = speed - 1;
+        Game.GameStates.scoreState.currscore = Math.sqrt( 2 * Game.GameStates.scoreState.currscore +1);
         Tail tail= null;
         handler.getWorld().appleLocation[xCoord][yCoord]=false;
         handler.getWorld().appleOnBoard=false;
