@@ -16,16 +16,19 @@ public class Player {
 
     public int lenght;
     public boolean justAte;
+                 
     private Handler handler;
     private scoreState score;
     private boolean pause; 
     public boolean isalive;
+    public boolean BadApple;                      //apple variable
 
     public int xCoord;
     public int yCoord;
     int speed;              //speed variable//
     public int moveCounter;
     public String direction;//is your first name one?
+    public int  moves;			//spaces moved variable
 
     public Player(Handler handler){
         this.handler = handler;
@@ -34,18 +37,20 @@ public class Player {
         moveCounter = 0;
         direction= "Right";
         justAte = false;
+       
         lenght= 1;
 
-        speed=4;          //basic speed
+        speed=5;          //basic speed
         score = new scoreState();
         isalive = true;
         pause = false;
 
-        speed=5;          //basic speed
+       
 
     }
     public void tick(){
         moveCounter++;
+        moves++;
         if(moveCounter>=speed) {
             checkCollisionAndMove();
             moveCounter=0;
@@ -88,14 +93,6 @@ public class Player {
         } if (handler.getKeyManager().keyJustPressed(KeyEvent.VK_ESCAPE)) {
     		State.setState(handler.getGame().pauseState);
 
-            direction="Right";
-        } if (handler.getKeyManager().keyJustPressed(KeyEvent.VK_MINUS)) {
-        	speed++;
-        } if (handler.getKeyManager().keyJustPressed(KeyEvent.VK_EQUALS)) {
-        	speed--;
-        } if (handler.getKeyManager().keyJustPressed(KeyEvent.VK_N)) {
-        	 handler.getWorld().body.add(new Tail(xCoord, yCoord,handler));
-
         }
 
     }
@@ -137,6 +134,14 @@ public class Player {
                 break;
         }
         handler.getWorld().playerLocation[xCoord][yCoord]=true;
+        															               //Good or bad apple
+        
+        if (moves<800) {
+       	 BadApple=false;
+       	 
+        }else { BadApple=true;
+        }
+
 
 
         if(handler.getWorld().appleLocation[xCoord][yCoord]){
@@ -153,6 +158,9 @@ public class Player {
             handler.getWorld().playerLocation[handler.getWorld().body.getLast().x][handler.getWorld().body.getLast().y] = false;
             handler.getWorld().body.removeLast();
             handler.getWorld().body.addFirst(new Tail(x, y,handler));
+            
+        
+         
         }
 
     }
@@ -188,17 +196,28 @@ public class Player {
                 g.drawString(score_str, 155, 40);
                 g.drawString("Score:", 40, 40);
                }
+               if ((handler.getWorld().appleLocation[i][j]) && (BadApple)) {              //change color
+            	   g.setColor(Color.LIGHT_GRAY);
+            	   g.fillRect((i*handler.getWorld().GridPixelsize),
+                           (j*handler.getWorld().GridPixelsize),
+                           handler.getWorld().GridPixelsize,
+                           handler.getWorld().GridPixelsize);
+            	   
+               }
+               
+       
+
                     
             }
-       
+      
+        
         }
         
-    }
-    
+    } 
     public void Eat(){
         lenght++;
         speed = speed - 1;
-        Game.GameStates.scoreState.currscore = Math.sqrt( 2 * Game.GameStates.scoreState.currscore +1);
+        Game.GameStates.scoreState.currscore += Math.sqrt( 2 * Game.GameStates.scoreState.currscore +1);
         Tail tail= null;
         handler.getWorld().appleLocation[xCoord][yCoord]=false;
         handler.getWorld().appleOnBoard=false;
@@ -303,6 +322,9 @@ public class Player {
         }
         handler.getWorld().body.addLast(tail);
         handler.getWorld().playerLocation[tail.x][tail.y] = true;
+        moves=0;
+    
+    														//start counting moves again
     }
 
     public void kill(){
@@ -313,14 +335,18 @@ public class Player {
                 handler.getWorld().playerLocation[i][j]=false;
 
             }
+           
+            
         }
     }
 
     public boolean isJustAte() {
+    	
         return justAte;
     }
 
     public void setJustAte(boolean justAte) {
         this.justAte = justAte;
-    }
+    }  
+    
 }
